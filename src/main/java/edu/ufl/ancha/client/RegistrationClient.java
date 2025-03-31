@@ -1,77 +1,68 @@
 package edu.ufl.ancha.client;
 
+import edu.ufl.ancha.registrationdblib.RegDBlib;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
 public class RegistrationClient {
     public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        RegDBlib dbLib = new RegDBlib();
 
-        Scanner sc = new Scanner(System.in);
         while (true) {
-            System.out.println("Enter L to list enrollment information for a student, E to enroll in a course, Q to Quit");
-            String choice = sc.nextLine().toUpperCase();
+            System.out.println("\nEnter L to list enrollment information for a student, E to enroll in a course, Q to Quit:");
+            String input = scanner.nextLine().toUpperCase();
 
-            if (choice.equals("L")) {
-                System.out.print("Student Id: ");
-                String stuid = sc.nextLine();
-                System.out.print("Semester Id (Fyy for Fall, Syy for Spring, Uyy for Summer): ");
-                String semid = sc.nextLine();
+            switch (input) {
+                case "L":
+                    System.out.print("Enter Student ID: ");
+                    String stuid = scanner.nextLine();
+                    System.out.print("Enter Semester ID: ");
+                    String semid = scanner.nextLine();
 
-                List<String> enrolledCourses = ListEnrolled(stuid, semid);
-                enrolledCourses.forEach(System.out::println);
-            }
-            else if (choice.equals("E")) {
-                System.out.print("Course Id: ");
-                String crsid = sc.nextLine();
-                System.out.print("Semester Id (Fyy for Fall, Syy for Spring, Uyy for Summer): ");
-                String semid = sc.nextLine();
+                    System.out.println("Enrollment information for student " + stuid + " in semester " + semid + ":");
+                    dbLib.listEnrolled(stuid, semid).forEach(System.out::println);
+                    break;
 
-                List<String> availableSections = ListAvailable(crsid, semid);
-                availableSections.forEach(System.out::println);
+                case "E":
+                    System.out.print("Enter Course ID: ");
+                    String crsid = scanner.nextLine();
+                    System.out.print("Enter Semester ID: ");
+                    semid = scanner.nextLine();
 
-                System.out.println("These are the available sections for " + crsid + " during semester " + semid +
-                        ". If you wish to enroll press E again otherwise press C to cancel.");
-                String confirm = sc.nextLine().toUpperCase();
+                    System.out.printf("These are the available sections for %s during semester %s:%n", crsid, semid);
+                    dbLib.listAvailable(crsid, semid).forEach(System.out::println);
 
-                if (confirm.equals("E")) {
-                    System.out.print("Student Id: ");
-                    String stuid = sc.nextLine();
-                    System.out.print("Section Id: ");
-                    String secid = sc.nextLine();
+                    System.out.println("If you wish to enroll press E again otherwise press C to cancel:");
+                    String confirm = scanner.nextLine().trim().toUpperCase();
 
-                    System.out.println(Enroll(stuid, crsid, secid, semid));
-                }
-            }
-            else if (choice.equals("Q")) {
-                System.out.println("Exiting...");
-                break;
+                    if ("E".equals(confirm)) {
+                        System.out.print("Enter Student ID: ");
+                        stuid = scanner.nextLine();
+                        System.out.print("Enter Section ID: ");
+                        String secid = scanner.nextLine();
+
+                        System.out.println(dbLib.enroll(stuid, crsid, secid, semid));
+                    } else if ("C".equals(confirm)) {
+                        System.out.println("Enrollment cancelled.");
+                    } else {
+                        System.out.println("Invalid input. Returning to main menu.");
+                    }
+                    break;
+
+                case "Q":
+                    System.out.println("Exiting from the system...");
+                    scanner.close();
+                    System.exit(0);
+                    break;
+
+                default:
+                    System.out.println("Invalid option. Try again.");
             }
         }
-        sc.close();
-
-
-    }
-    public static List<String> ListEnrolled(String stuid, String semid) {
-
-        List<String> enrolledList = new LinkedList<>();
-        enrolledList.add("ISM6236, " + semid + ",1,MW 9-10");
-        enrolledList.add("ISM6485, " + semid + ",2,MW 3-4");
-        return enrolledList;
     }
 
-    public static List<String> ListAvailable(String crsid, String semid) {
-        List<String> availableList = new LinkedList<>();
-        // 1,MW 1-2,10 => Section 1, meets MW 1-2, 10 seats left
-        // 2,MW 3-4,12 => Section 2, meets MW 3-4, 12 seats left
-        availableList.add("1,MW 1-2,10");
-        availableList.add("2,MW 3-4,12");
-        return availableList;
-    }
 
-    public static String Enroll(String stuid, String crsid, String secid, String semid) {
-
-        return "Student " + stuid + " added to section " + secid + " of "
-                + crsid + " for semester " + semid + ".";
-    }
 }
